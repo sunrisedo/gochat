@@ -1,0 +1,123 @@
+html, body {
+    height: 100%;
+}
+
+#container {
+    position: absolute;
+    top: 70px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#msgContainer, #otherContainer {
+    position: relative;
+    height: 100%;
+}
+
+#msgBasePanel {
+    position: absolute;
+    top: 0;
+    bottom: 180px;
+    left: 0;
+    right: 0;
+}
+
+#msgPanel, #systemPanel {
+    height: 100%;
+}
+
+#emotionBasePanel {
+    position: absolute;
+    padding: 5px;
+    bottom: 100px;
+    left: 0;
+    right: 0;
+    height: 72px;
+    overflow-x: none;
+    overflow-y: scroll;
+}
+
+.emotionBlock {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    background: url('/static/emotion/fface.gif');
+    border: none;
+}
+
+#sendMsgPanel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+}
+
+#systemBasePanel {
+    position: absolute;
+    top: 0;
+    left: 2%;
+    right: 0;
+    height: 20%;
+}
+
+#userBasePanel {
+    position: absolute;
+    top: 22%;
+    bottom: 0;
+    left: 2%;
+    right: 0;
+}
+
+#userPanel {
+    position: absolute;
+    top: 41px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#msgPanel, #userPanel, #systemPanel {
+    overflow-y: scroll;
+    word-break: break-all;
+}
+
+#editor {
+    position: absolute;
+    bottom: 0;
+    left: 41px;
+    right: 61px;
+    height: 100px;
+    min-width: 0;
+    overflow-x: none;
+    overflow-y: scroll;
+}
+
+#btnToolbar {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    width: 40px;
+}
+
+#submitBtn {
+    position: absolute;
+    top: -100px;
+    right: 0;
+    width: 60px;
+    bottom: 0;
+}
+
+.msgShowPanel  {
+    padding: 10px;
+    margin: 5px 0 5px 0;
+}
+
+.userShowPanel {
+    margin: 5px 0 5px 0;
+}
+
+.systemShowPanel {
+    padding: 2px 0 2px 12px;
+    margin: 2px 0 2px 0;
+}

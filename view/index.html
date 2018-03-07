@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,minimum-scale=1.0,maximum-scale=1.0"/>
+    <title>聊天室</title>
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css" type="text/css" media="screen" charset="utf-8">
+    <!--<link rel="stylesheet" href="http://apps.bdimg.com/libs/prettify/r298/prettify.min.css" type="text/css" media="screen" charset="utf-8">-->
+    <!--<link rel="stylesheet" href="http://apps.bdimg.com/libs/fontawesome/4.2.0/css/font-awesome.min.css" type="text/css" media="screen" charset="utf-8">-->
+    <link rel="stylesheet" href="/static/index.css" type="text/css" media="screen" charset="utf-8">
+
+    <script type="text/javascript" charset="utf-8" src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="http://apps.bdimg.com/libs/handlebars.js/2.0.0-alpha.4/handlebars.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="http://cdn.staticfile.org/sprintf/1.0.2/sprintf.min.js"></script>
+    <!--<script type="text/javascript" charset="utf-8" src="http://apps.bdimg.com/libs/prettify/r298/prettify.min.js"></script>-->
+    <script type="text/javascript" charset="utf-8" src="/static/jquery.hotkeys.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/bootstrap-wysiwyg.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/index.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button id="roomworld"  class="btn btn-default">世界频道</a>
+                <button id="roomservice"  class="btn btn-default">客服频道</a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="container" class="container-fluid">
+        <div id="msgContainer" class="col-xs-8">
+            <div id="msgBasePanel" class="panel panel-default">
+                <div id="msgPanel" class="panel-body"></div>
+            </div>
+
+            <div id="emotionBasePanel" class="alert alert-warning">
+                <{range .emotionNums}>
+                <a href="javascript:;" data-index="<{.}>" class="emotionBlock" style="background-position: 0 -<{op "*" 25 .}>px;"></a>
+                <{end}>
+            </div>
+
+            <div id="sendMsgPanel" class="form-inline">
+                <div class="btn-toolbar" data-role="editor-toolbar" data-target="#editor" id="btnToolbar">
+                    <button id="emotionBtn" class="btn btn-default"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span></button>
+                    <button id="pictureBtn" class="btn btn-default"><span class="glyphicon glyphicon-picture" aria-hidden="true"></span></button>
+                    <input type="file" data-role="magic-overlay" data-target="#pictureBtn" data-edit="insertImage" id="pictureFile" class="hidden" />
+                </div>
+                <div id="editor" class="form-control"></div>
+                <button id="submitBtn" class="btn btn-default">发送</button>
+            </div>
+        </div>
+
+        <div id="otherContainer" class="col-xs-4">
+            <div id="systemBasePanel" class="panel panel-default">
+                <div id="systemPanel" class="panel-body"></div>
+            </div>
+
+            <div id="userBasePanel" class="panel panel-default">
+                <div class="panel-heading"> <strong>当前在线人数：</strong> <span id="numUser" class="badge"></span> </div>
+                <div id="userPanel" class="panel-body"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script id="msgTpl" type="text/template" charset="utf-8">
+    <div class="alert alert-info msgShowPanel">
+        <div class="row">
+            <div class="col-xs-8 text-left">
+                <strong> <span class="glyphicon glyphicon-triangle-right" aria-hidden="true"></span> {{user_name}}</strong>
+            </div>
+            <div class="col-xs-4 text-right">{{time}}</div>
+        </div>
+        <p>{{content}}</p>
+    </div>
+</script>
+
+<script id="systemTpl" type="text/template" charset="utf-8">
+    <div class="alert alert-{{color}} systemShowPanel" role="alert">{{msg}}</div>
+</script>
+
+<script id="userTpl" type="text/template" charset="utf-8">
+    {{#each users}}
+    <div class="well well-sm userShowPanel"> <span class="glyphicon glyphicon glyphicon-user" aria-hidden="true"></span> {{this}} </div>
+    {{/each}}
+</script>
+
+<!-- 模板变量 -->
+<input type="hidden" id="wsPort" value="<{.wsPort}>" />
+
+</html>
