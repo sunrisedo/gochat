@@ -1,4 +1,4 @@
-# YLWS BACKGROUND API
+# CHAT API
 websocket链接: ws://192.168.2.68:10001/chat 
 
 <!-- [一、相册标签管理](#1)  
