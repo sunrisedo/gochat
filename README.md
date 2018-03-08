@@ -1,5 +1,5 @@
 # YLWS BACKGROUND API
-websocket链接: ws://192.168.2.68:10001/chat 
+websocket链接: wss://ttt.tdex.com/chat
 
 [一、聊天室](#1)  
 &nbsp; &nbsp; [心跳握手](#1.1)  
