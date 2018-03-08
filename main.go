@@ -32,8 +32,8 @@ func init() {
 		gEmotionNums[i] = i
 	}
 
-	flag.IntVar(&gPort, "p", 10000, "web server port")
-	flag.IntVar(&gWsPort, "wp", 10001, "websocket server port")
+	flag.IntVar(&gPort, "p", 8000, "web server port")
+	flag.IntVar(&gWsPort, "wp", 8002, "websocket server port")
 	flag.BoolVar(&gIsHelp, "h", false, "show help")
 	flag.BoolVar(&gIsHelp, "help", false, "show help")
 }

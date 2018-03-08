@@ -38,7 +38,7 @@ func (c *MapPool) Get(key string) interface{} {
 var (
 	Sub        = NewMapPool()
 	HistoryMsg = NewMapPool()
-	RoomList   = []string{"roomworld", "roomservice"}
+	RoomList   = []string{"roomzh_cn", "roomzh_tw", "roomen_us", "roomservice"}
 )
 
 func init() {
@@ -47,6 +47,11 @@ func init() {
 		msgs := make(map[uint32][]ChatInfo)
 		HistoryMsg.Set(room, msgs)
 	}
+}
+
+type HeartData struct {
+	Pong string `json:"pong,omitempty"`
+	Ping string `json:"ping,omitempty"`
 }
 
 type Request struct {
@@ -67,17 +72,24 @@ func (c *Request) Clients() (Clients, error) {
 
 type Response struct {
 	// Sub  string      `json:"sub",omitempty`
-	Task string      `json:"task",omitempty`
-	Data interface{} `json:"data",omitempty`
+	Task string      `json:"task,omitempty"`
+	Data interface{} `json:"data,omitempty"`
+}
+
+type Result struct {
+	Id     string      `json:"id,omitempty",`
+	Result string      `json:"result,omitempty"`
+	Chats  interface{} `json:"chats,omitempty"`
+	Subs   interface{} `json:"subs,omitempty"`
 }
 
 type ChatInfo struct {
-	Uid  uint32     `json:"uid,omitempty"`
-	Room string     `json:"room,omitempty"`
-	Time int64      `json:"time,omitempty"`
-	Msg  string     `json:"msg,omitempty"`
-	Uids []uint32   `json:"uids,omitempty"`
-	Msgs []ChatInfo `json:"msgs,omitempty"`
+	Uid    uint32   `json:"uid,omitempty"`
+	Sub    string   `json:"sub,omitempty"`
+	Time   int64    `json:"time,omitempty"`
+	Msg    string   `json:"msg,omitempty"`
+	Action string   `json:"action,omitempty"`
+	Uids   []uint32 `json:"uids,omitempty"`
 }
 
 type Assign struct {
@@ -106,6 +118,16 @@ func (c *Client) Protocol(query string) error {
 	req := new(Request)
 	req.Values = values
 	log.Println("values", req.Values)
+	c.errCnt = 0
+	if pong := req.Get("pong"); pong != "" {
+		c.errCnt = 0
+		return nil
+	}
+	if ping := req.Get("ping"); ping != "" {
+		c.Pong(ping)
+		return nil
+	}
+
 	switch req.Get("task") {
 	case "join":
 		err = c.Join(req)
@@ -113,8 +135,8 @@ func (c *Client) Protocol(query string) error {
 		err = c.Msg(req)
 	case "exit":
 		err = c.Exit(req)
-	case "heart":
-		c.errCnt = 0
+	case "sub":
+		err = c.Sub(req)
 	// case "image":
 	// 	err = c.Image(req, time.Now())
 	default:
@@ -129,16 +151,22 @@ func (c *Client) Protocol(query string) error {
 	return nil
 }
 
-func (c *Client) Heart() error {
-	// c.Write(NewResponse("ping", fmt.Sprintf("%d", c.expiryTime), "uid", fmt.Sprintf("%d", c.uid)))
-	c.Write(&Response{"heart", c.expiryTime})
+func (c *Client) Ping() error {
+	c.Write(HeartData{Ping: fmt.Sprintf("%d", c.expiryTime)})
 	return nil
 }
 
-func (c *Client) Room(req *Request) error {
-	c.Write(&Response{"room", RoomList})
+func (c *Client) Pong(ping string) error {
+	c.Write(HeartData{Pong: ping})
 	return nil
 }
+
+func (c *Client) Sub(req *Request) error {
+	result := Result{Id: req.Get("id"), Result: "success", Subs: RoomList}
+	c.Write(&Response{"sub", result})
+	return nil
+}
+
 func (c *Client) Join(req *Request) error {
 
 	uidkey := req.Get("uid")
@@ -156,15 +184,18 @@ func (c *Client) Join(req *Request) error {
 	clients[c] = struct{}{}
 	roomkey := req.Get("sub")
 	Sub.Set(roomkey, clients)
+
+	result := Result{Id: req.Get("id"), Result: "success"}
 	index := HistoryMsg.Get(roomkey).(map[uint32][]ChatInfo)
-	chat := ChatInfo{Uid: c.uid, Room: req.Get("room"), Msg: fmt.Sprintf("%d 加入聊天室", c.uid), Uids: clients.Uids()}
-	switch roomkey {
-	case "roomworld":
-		chat.Msgs = index[0]
-		c.server.Assign(&Assign{clients, Response{"join", chat}})
-	case "roomservice":
-		chat.Msgs = index[c.uid]
-		c.Write(&Response{"join", chat})
+
+	if roomkey == "roomservice" {
+		result.Chats = index[c.uid]
+		c.Write(&Response{"join", result})
+	} else {
+		result.Chats = index[0]
+		c.Write(&Response{"join", result})
+		chat := ChatInfo{Uid: c.uid, Sub: req.Get("sub"), Action: "join", Uids: clients.Uids()}
+		c.server.Assign(&Assign{clients, Response{"userupdate", chat}})
 	}
 	// c.server.Broadcast(NewResponse("type", "join", "uid", fmt.Sprintf("%d", c.uid), "uids", room.All(), "msg", fmt.Sprintf("%d 加入聊天室", c.uid)))
 
@@ -179,22 +210,24 @@ func (c *Client) Exit(req *Request) error {
 	delete(clients, c)
 	Sub.Set(req.Get("sub"), clients)
 	// c.server.Broadcast(NewResponse("type", "exit", "uid", fmt.Sprintf("%d", c.uid), "uids", room.All(), "msg", fmt.Sprintf("%d 加入聊天室", c.uid)))
-	rep := Response{"exit", &ChatInfo{Uid: c.uid, Room: req.Get("room"), Msg: fmt.Sprintf("%d 离开聊天室", c.uid), Uids: clients.Uids()}}
+	result := Result{Id: req.Get("id"), Result: "success"}
+	c.Write(&Response{"exit", result})
+
+	rep := Response{"userupdate", &ChatInfo{Uid: c.uid, Sub: req.Get("sub"), Action: "exit", Uids: clients.Uids()}}
 	c.server.Assign(&Assign{clients, rep})
 	return nil
 }
+
 func (c *Client) CloseExit() {
-	wclients := Sub.Get("roomworld").(Clients)
-	delete(wclients, c)
-	Sub.Set("roomworld", wclients)
-	sclients := Sub.Get("roomservice").(Clients)
-	delete(sclients, c)
-	Sub.Set("roomservice", sclients)
-	wrep := Response{"exit", &ChatInfo{Uid: c.uid, Room: "roomworld", Msg: fmt.Sprintf("%d 离开聊天室", c.uid), Uids: wclients.Uids()}}
-	c.server.Assign(&Assign{wclients, wrep})
-	srep := Response{"exit", &ChatInfo{Uid: c.uid, Room: "roomservice", Msg: fmt.Sprintf("%d 离开聊天室", c.uid), Uids: sclients.Uids()}}
-	c.server.Assign(&Assign{sclients, srep})
+	for _, room := range RoomList {
+		clients := Sub.Get(room).(Clients)
+		delete(clients, c)
+		Sub.Set(room, clients)
+		rep := Response{"userupdate", &ChatInfo{Uid: c.uid, Sub: room, Action: "exit", Uids: clients.Uids()}}
+		c.server.Assign(&Assign{clients, rep})
+	}
 }
+
 func (c *Client) Msg(req *Request) error {
 
 	msg := req.Get("msg")
@@ -216,22 +249,19 @@ func (c *Client) Msg(req *Request) error {
 	}
 	c.sendTime = time.Now().Unix()
 	roomkey := req.Get("sub")
-	chat := ChatInfo{Uid: c.uid, Room: roomkey, Time: c.sendTime, Msg: msg}
+	chat := ChatInfo{Uid: c.uid, Sub: roomkey, Time: c.sendTime, Msg: msg}
 	rep := Response{"msg", chat}
 	index := HistoryMsg.Get(roomkey).(map[uint32][]ChatInfo)
-	switch roomkey {
-	case "roomworld":
-		index[0] = append(index[0], chat)
-		HistoryMsg.Set(roomkey, index)
-		// c.server.Broadcast(NewResponse("type", "msg", "uid", fmt.Sprintf("%d", c.uid), "room", roomkey, "time", fmt.Sprintf("%d", c.sendTime), "msg", msg))
-		c.server.Assign(&Assign{clients, rep})
-	case "roomservice":
+	if roomkey == "roomservice" {
 		index[c.uid] = append(index[c.uid], chat)
 		HistoryMsg.Set(roomkey, index)
 		// c.Write(NewResponse("type", "msg", "uid", fmt.Sprintf("%d", c.uid), "room", roomkey, "time", fmt.Sprintf("%d", c.sendTime), "msg", msg))
 		c.Write(&rep)
-	default:
-		return errors.New("房号不能为空")
+	} else {
+		index[0] = append(index[0], chat)
+		HistoryMsg.Set(roomkey, index)
+		// c.server.Broadcast(NewResponse("type", "msg", "uid", fmt.Sprintf("%d", c.uid), "room", roomkey, "time", fmt.Sprintf("%d", c.sendTime), "msg", msg))
+		c.server.Assign(&Assign{clients, rep})
 	}
 	return nil
 }

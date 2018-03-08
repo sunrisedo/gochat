@@ -51,7 +51,7 @@ func (c *Client) listenWrite() {
 			}
 			// c.errCnt++
 			c.expiryTime = time.Now().Unix()
-			c.Heart()
+			c.Ping()
 		case data := <-c.writeSignal:
 			if err := websocket.JSON.Send(c.ws, data); err != nil {
 				log.Printf("Websocket send data error:%v,data:%v", err, data)

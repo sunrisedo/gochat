@@ -24,7 +24,7 @@ $(function() {
     }
 
     wsUrl = "ws://" + window.location.hostname + ":" + $("#wsPort").val() + "/chat";
-
+// wsUrl = "wss://ttt.tdex.com/chat";
     initUIAndEvent();
 
     // get userName
@@ -66,21 +66,54 @@ function initUIAndEvent() {
         $("#pictureFile").click();
     });
 
-    $("#roomworld").click(function() {
-        sub = "roomworld";
-        document.getElementById("roomworld").style="btn-default";
+    $("#roomzh_cn").click(function() {
+        sub = "roomzh_cn";
+        document.getElementById("roomzh_cn").style="btn-default";
+        document.getElementById("roomzh_tw").style.color="#fcf8e3";
+        document.getElementById("roomen_us").style.color="#fcf8e3";
         document.getElementById("roomservice").style.color="#fcf8e3";
         wsSendQuerys("join",{"uid":uid,"sub":sub});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomzh_tw"});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomen_us"});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomservice"});
+    });
+
+    $("#roomzh_tw").click(function() {
+        sub = "roomzh_tw";
+        document.getElementById("roomzh_cn").style.color="#fcf8e3";
+        document.getElementById("roomzh_tw").style="#btn-default";
+        document.getElementById("roomen_us").style.color="#fcf8e3";
+        document.getElementById("roomservice").style.color="#fcf8e3";
+        
+        wsSendQuerys("join",{"uid":uid,"sub":sub});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomzh_cn"});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomen_us"});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomservice"});
+    });
+
+    $("#roomen_us").click(function() {
+        sub = "roomen_us";
+        document.getElementById("roomzh_cn").style.color="#fcf8e3";
+        document.getElementById("roomzh_tw").style.color="#fcf8e3";
+        document.getElementById("roomen_us").style="#btn-default";
+        document.getElementById("roomservice").style.color="#fcf8e3";
+        wsSendQuerys("join",{"uid":uid,"sub":sub});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomzh_cn"});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomzh_tw"});
         wsSendQuerys("exit",{"uid":uid,"sub":"roomservice"});
     });
 
     $("#roomservice").click(function() {
         sub = "roomservice";
-        document.getElementById("roomworld").style.color="#fcf8e3";
-        document.getElementById("roomservice").style="btn-default";
+        document.getElementById("roomzh_cn").style.color="#fcf8e3";
+        document.getElementById("roomzh_tw").style.color="#fcf8e3";
+        document.getElementById("roomen_us").style.color="#fcf8e3";
+        document.getElementById("roomservice").style="#btn-default";
         // document.getElementById("roomworld").style.color="white";
         wsSendQuerys("join",{"uid":uid,"sub":sub});
-        wsSendQuerys("exit",{"uid":uid,"sub":"roomworld"});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomzh_cn"});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomzh_tw"});
+        wsSendQuerys("exit",{"uid":uid,"sub":"roomen_us"});
     });
 
     $("#submitBtn").click(function() {
@@ -212,29 +245,32 @@ function wsOnMessage(e) {
 
     var obj = $.parseJSON(e.data); 
     console.log("parseJSON",obj)
+    //heart
+    if (obj.ping != null || obj.ping != undefined) {
+        var querys = $.param({"pong": obj.ping});
+        ws.send(querys);
+    }
+
     switch (obj.task) {
-    case "join":
-        displaySystem(obj.data.msg, "warning");
+    case "userupdate":
+        var msg = obj.data.uid + " " + obj.data.action + " "+ obj.data.sub
+        displaySystem(msg, "warning");
         displayUsers(obj.data.uids);
+        break;
+    case "join":
         $("#msgPanel").html(null);
-        for (i=0;i<obj.data.msgs.length;i++){
-            displayMessage(obj.data.msgs[i].uid, obj.data.msgs[i].time, obj.data.msgs[i].msg);
+        for (i=0;i<obj.data.chats.length;i++){
+            displayMessage(obj.data.chats[i].uid, obj.data.chats[i].time, obj.data.chats[i].msg);
         };
         break;
     case "exit":
-        // displaySystem(decodeURIComponent(obj.msg), "warning");
-        // displayUsers(decodeURIComponent(obj.uids));
-        displaySystem(obj.data.msg, "warning");
-        displayUsers(obj.data.uids);
-        break;
-    case "heart":
-        break      
+        break;   
     case "error":
         // displaySystem(decodeURIComponent(obj.msg), "danger");
         alert(obj.data);
         break;
     case "msg":
-        // console.log("普通时间为："+timestr);
+        // console.log("普通时间为 ："+timestr);
         displayMessage(obj.data.uid, obj.data.time, obj.data.msg);
         break;
 
@@ -247,7 +283,7 @@ function wsOnMessage(e) {
 }
 
 function wsOnOpen(e) {
-    wsSendQuerys("join",{"uid": uid,"sub":"roomworld"});
+    wsSendQuerys("sub");
     // wsSendJson("join",{"uid": uid,"room":"roomworld"});
     
 }
@@ -343,14 +379,15 @@ function displaySystem(msg, color) {
 }
 
 function wsSendQuerys(type, data) {
-    var values = $.extend(data, {"type": type})
+    var timestamp =new Date().getTime()
+    var values = $.extend(data, {"task":type,"Id":timestamp})
     var querys = $.param(values);
 
     ws.send(querys);
 }
 
 function wsSendJson(type, data) {
-    var values = $.extend(data, {"type": type});
+    var values = $.extend(data, {"task": type});
     // var querys = $.param(values);
     // r toStr = ;
     ws.send(JSON.stringify(values));
@@ -358,7 +395,7 @@ function wsSendJson(type, data) {
 
 
 function wsSendMessage(type, body, data) {
-    var values = $.extend(data, {"type": type})
+    var values = $.extend(data, {"task": type})
     var querys = $.param(values);
     var content = "\n" + querys + "\n" + body;
     var sends = sprintf("%08d", getByteLen(content)) + content;
