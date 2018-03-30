@@ -168,6 +168,7 @@ sub|string|频道ID
 uid|string|用户ID
 time|int64|时间戳
 msg|string|信息
+mtype|int|消息类型(1用户,2客服,3系统)
 
 ```
 {
@@ -176,7 +177,8 @@ msg|string|信息
         "sub":"roomservice",
         "uid":112312,
         "time":1520474198,
-        "msg":"hello world"
+        "msg":"hello world",
+        "mtype":1
     }
 }
 ```
@@ -229,7 +231,6 @@ uid|string|用户ID
 sub|string|频道ID
 msg|string|消息
 
-
 返回参数: 
 
 参数名|类型|说明
@@ -240,7 +241,7 @@ sub|string|频道ID
 uid|string|用户ID
 time|int64|时间戳
 msg|string|信息
-
+mtype|int|消息类型(1用户,2客服,3系统)
 
 请求示例:
 ```
@@ -254,7 +255,8 @@ msg=asdasd&sub=roomservice&task=msg
         "sub":"roomservice",
         "uid":112312,
         "time":1520474198,
-        "msg":"hello world"
+        "msg":"hello world",
+        "mtype":1
     }
 }
 ```
