@@ -231,6 +231,7 @@ uid|string|用户ID
 sub|string|频道ID
 msg|string|消息
 mtype|string|消息类型(1用户,2客服,3系统)
+
 返回参数: 
 
 参数名|类型|说明
