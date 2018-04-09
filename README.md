@@ -44,7 +44,7 @@ ping=1520414598
 ```
 
 ---
-<h3 id='1.4'>频道列表</h3>
+<h3 id='1.5'>频道列表</h3>
 
 请求参数：
 
@@ -230,7 +230,7 @@ task|string|消息类型
 uid|string|用户ID
 sub|string|频道ID
 msg|string|消息
-
+mtype|string|消息类型(1用户,2客服,3系统)
 返回参数: 
 
 参数名|类型|说明
@@ -245,7 +245,7 @@ mtype|int|消息类型(1用户,2客服,3系统)
 
 请求示例:
 ```
-msg=asdasd&sub=roomservice&task=msg
+msg=asdasd&sub=roomservice&task=msg&mtype=1
 ```
 
 ```
